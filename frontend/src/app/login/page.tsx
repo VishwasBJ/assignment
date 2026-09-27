@@ -7,7 +7,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/auth";
-import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassInput } from "@/components/ui/GlassInput";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { AuthProvider } from "@/components/AuthProvider";
@@ -29,65 +28,48 @@ function LoginForm() {
   const onSubmit = async (data: FormValues) => {
     try {
       await login(data.email, data.password);
-      // login() sets user in the store synchronously via set(); navigate after
       router.push("/dashboard");
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        (Array.isArray(err?.response?.data?.message)
-          ? err.response.data.message.join(", ")
-          : null) ||
-        "Login failed — check your email and password";
-      toast.error(msg);
+      toast.error(err?.response?.data?.message || "Invalid email or password");
     }
   };
 
   return (
-    <main className="min-h-screen bg-mesh flex items-center justify-center p-4">
-      <GlassCard className="w-full max-w-md animate-fade-in">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-white">Welcome back</h1>
-          <p className="text-slate-400 text-sm mt-1">Sign in to your account</p>
+    <main className="bg-mesh full-page-center">
+      <div className="card animate-fade-in" style={{ width: "100%", maxWidth: "26rem" }}>
+        <div style={{ textAlign: "center", marginBottom: "2rem" }}>
+          <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: "#f1f5f9", marginBottom: "0.375rem" }}>Welcome back</h1>
+          <p style={{ color: "#475569", fontSize: "0.875rem" }}>Sign in to your account</p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
+        <form onSubmit={handleSubmit(onSubmit)} style={{ display: "flex", flexDirection: "column", gap: "1rem" }} noValidate>
           <GlassInput
-            label="Email"
-            type="email"
-            placeholder="you@example.com"
-            autoComplete="email"
-            error={errors.email?.message}
+            label="Email" type="email" placeholder="you@example.com"
+            autoComplete="email" error={errors.email?.message}
             {...register("email")}
           />
           <GlassInput
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            autoComplete="current-password"
-            error={errors.password?.message}
+            label="Password" type="password" placeholder="••••••••"
+            autoComplete="current-password" error={errors.password?.message}
             {...register("password")}
           />
-
-          <GlassButton type="submit" className="w-full mt-2" loading={isLoading}>
+          <GlassButton type="submit" className="w-full" loading={isLoading}
+            style={{ width: "100%", justifyContent: "center", marginTop: "0.5rem" }}>
             Sign In
           </GlassButton>
         </form>
 
-        <p className="text-center text-sm text-slate-400 mt-6">
+        <p style={{ textAlign: "center", fontSize: "0.875rem", color: "#475569", marginTop: "1.5rem" }}>
           No account?{" "}
-          <Link href="/register" className="text-indigo-400 hover:text-indigo-300 font-medium">
+          <Link href="/register" style={{ color: "#818cf8", textDecoration: "none", fontWeight: 500 }}>
             Create one
           </Link>
         </p>
-      </GlassCard>
+      </div>
     </main>
   );
 }
 
 export default function LoginPage() {
-  return (
-    <AuthProvider>
-      <LoginForm />
-    </AuthProvider>
-  );
+  return <AuthProvider><LoginForm /></AuthProvider>;
 }

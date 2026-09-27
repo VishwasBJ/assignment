@@ -1,4 +1,3 @@
-import { cn, severityColor } from "@/lib/utils";
 import type { Severity } from "@/lib/types";
 
 interface SeverityBadgeProps {
@@ -7,14 +6,9 @@ interface SeverityBadgeProps {
 }
 
 export function SeverityBadge({ severity, size = "md" }: SeverityBadgeProps) {
+  const cls = `badge badge-${severity?.toLowerCase()}`;
   return (
-    <span
-      className={cn(
-        "inline-flex items-center font-semibold rounded-full border tracking-wide uppercase",
-        size === "sm" ? "px-2 py-0.5 text-[10px]" : "px-3 py-1 text-xs",
-        severityColor(severity)
-      )}
-    >
+    <span className={cls} style={size === "sm" ? { fontSize: "0.65rem", padding: "0.15rem 0.45rem" } : undefined}>
       {severity}
     </span>
   );

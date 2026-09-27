@@ -4,12 +4,9 @@ import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { apiClient } from "@/lib/api";
 import type { TreeNode, ProjectFile } from "@/lib/types";
-import { getFileLanguage, formatBytes, formatDate } from "@/lib/utils";
-import { GlassCard } from "@/components/ui/GlassCard";
-import { GlassButton } from "@/components/ui/GlassButton";
+import { formatBytes, formatDate } from "@/lib/utils";
 import { LoadingSpinner } from "@/components/ui/LoadingSpinner";
 import { Folder, FolderOpen, FileCode, ChevronRight, Trash2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface Props { projectId: string }
 
@@ -21,10 +18,8 @@ export function FileExplorer({ projectId }: Props) {
 
   const fetchTree = async () => {
     setLoading(true);
-    try {
-      const { data } = await apiClient.get(`/projects/${projectId}/files/tree`);
-      setTree(data);
-    } catch { toast.error("Failed to load files"); }
+    try { const { data } = await apiClient.get(`/projects/${projectId}/files/tree`); setTree(data); }
+    catch { toast.error("Failed to load files"); }
     finally { setLoading(false); }
   };
 
@@ -32,10 +27,8 @@ export function FileExplorer({ projectId }: Props) {
 
   const openFile = async (id: string) => {
     setFileLoading(true);
-    try {
-      const { data } = await apiClient.get(`/projects/${projectId}/files/${id}`);
-      setSelected(data);
-    } catch { toast.error("Failed to load file"); }
+    try { const { data } = await apiClient.get(`/projects/${projectId}/files/${id}`); setSelected(data); }
+    catch { toast.error("Failed to load file"); }
     finally { setFileLoading(false); }
   };
 
@@ -43,152 +36,120 @@ export function FileExplorer({ projectId }: Props) {
     try {
       await apiClient.delete(`/projects/${projectId}/files/${id}`);
       if (selected?.id === id) setSelected(null);
-      toast.success("File deleted");
-      fetchTree();
-    } catch { toast.error("Failed to delete file"); }
+      toast.success("File deleted"); fetchTree();
+    } catch { toast.error("Failed to delete"); }
   };
 
-  if (loading) return <div className="flex justify-center mt-10"><LoadingSpinner /></div>;
+  if (loading) return <div style={{ display: "flex", justifyContent: "center", marginTop: "2.5rem" }}><LoadingSpinner /></div>;
 
   const hasFiles = tree && tree.type === "directory" && tree.children.length > 0;
 
-  if (!hasFiles) {
-    return (
-      <GlassCard className="text-center py-12">
-        <FileCode size={36} className="mx-auto text-slate-600 mb-3" />
-        <p className="text-white font-medium">No files uploaded yet</p>
-        <p className="text-slate-400 text-sm mt-1">Use &quot;Upload Files&quot; to add code.</p>
-      </GlassCard>
-    );
-  }
+  if (!hasFiles) return (
+    <div className="card"><div className="empty-state">
+      <FileCode size={36} style={{ color: "#1e293b" }} />
+      <p style={{ fontWeight: 600, color: "#f1f5f9" }}>No files uploaded yet</p>
+      <p style={{ color: "#475569", fontSize: "0.875rem" }}>Use "Upload Files" to add code.</p>
+    </div></div>
+  );
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 min-h-[500px]">
-      {/* Tree */}
-      <GlassCard noPad className="lg:col-span-1 overflow-y-auto max-h-[600px]">
-        <div className="px-4 py-3 border-b border-white/10 text-sm font-medium text-slate-300">
-          File Tree
+    <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: "1rem", minHeight: 520 }}>
+      {/* Tree panel */}
+      <div className="card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", fontSize: "0.8125rem", fontWeight: 600, color: "#64748b" }}>
+          Files
         </div>
-        <div className="py-2">
-          <TreeNodeView
-            node={tree}
-            depth={0}
-            onSelect={openFile}
-            onDelete={deleteFile}
-            selectedId={selected?.id}
-          />
+        <div style={{ flex: 1, overflowY: "auto", padding: "0.375rem" }}>
+          <TreeNodeView node={tree} depth={0} onSelect={openFile} onDelete={deleteFile} selectedId={selected?.id} />
         </div>
-      </GlassCard>
+      </div>
 
-      {/* Viewer */}
-      <GlassCard noPad className="lg:col-span-2 overflow-hidden flex flex-col max-h-[600px]">
+      {/* Viewer panel */}
+      <div className="card" style={{ padding: 0, overflow: "hidden", display: "flex", flexDirection: "column", minHeight: 520 }}>
         {selected ? (
           <>
-            <div className="px-4 py-3 border-b border-white/10 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-white truncate">{selected.path}</p>
-                <p className="text-xs text-slate-500">{formatBytes(selected.size)} · {formatDate(selected.createdAt)}</p>
+            <div style={{ padding: "0.75rem 1rem", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: "0.875rem", fontWeight: 500, color: "#f1f5f9", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{selected.path}</p>
+                <p style={{ fontSize: "0.75rem", color: "#334155", margin: "0.125rem 0 0" }}>{formatBytes(selected.size)} · {formatDate(selected.createdAt)}</p>
               </div>
-              <button onClick={() => setSelected(null)} className="text-slate-500 hover:text-white transition-colors shrink-0">
-                <X size={16} />
-              </button>
+              <button onClick={() => setSelected(null)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", padding: "0.25rem", display: "flex", flexShrink: 0 }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#f1f5f9")}
+                onMouseLeave={e => (e.currentTarget.style.color = "#475569")}
+              ><X size={16} /></button>
             </div>
-            <div className="flex-1 overflow-auto">
-              <CodeViewer content={selected.content ?? ""} filename={selected.name} />
+            <div style={{ flex: 1, overflow: "auto" }}>
+              <div className="code-viewer">
+                {(selected.content ?? "").split("\n").map((line, i) => (
+                  <div key={i} className="code-line">
+                    <span className="code-ln">{i + 1}</span>
+                    <span className="code-text">{line}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         ) : fileLoading ? (
-          <div className="flex items-center justify-center h-full">
-            <LoadingSpinner />
-          </div>
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}><LoadingSpinner /></div>
         ) : (
-          <div className="flex items-center justify-center h-full text-slate-500 text-sm">
+          <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", color: "#334155", fontSize: "0.875rem" }}>
             Select a file to preview
           </div>
         )}
-      </GlassCard>
+      </div>
     </div>
   );
 }
 
-function TreeNodeView({
-  node, depth, onSelect, onDelete, selectedId,
-}: {
+function TreeNodeView({ node, depth, onSelect, onDelete, selectedId }: {
   node: TreeNode; depth: number;
-  onSelect: (id: string) => void;
-  onDelete: (id: string) => void;
-  selectedId?: string;
+  onSelect: (id: string) => void; onDelete: (id: string) => void; selectedId?: string;
 }) {
   const [open, setOpen] = useState(depth < 2);
 
   if (node.type === "file") {
+    const active = selectedId === node.id;
     return (
       <div
-        className={cn(
-          "group flex items-center gap-2 px-3 py-1.5 text-sm cursor-pointer rounded-lg mx-1 transition-colors",
-          selectedId === node.id ? "bg-indigo-600/20 text-indigo-300" : "text-slate-300 hover:bg-white/5 hover:text-white"
-        )}
-        style={{ paddingLeft: `${depth * 12 + 12}px` }}
+        className={`tree-item${active ? " selected" : ""}`}
+        style={{ paddingLeft: `${depth * 14 + 10}px` }}
         onClick={() => onSelect(node.id)}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => e.key === "Enter" && onSelect(node.id)}
+        role="button" tabIndex={0}
+        onKeyDown={e => e.key === "Enter" && onSelect(node.id)}
       >
-        <FileCode size={13} className="shrink-0 text-slate-500" />
-        <span className="truncate flex-1">{node.name}</span>
+        <FileCode size={13} style={{ flexShrink: 0, color: "#334155" }} />
+        <span style={{ flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{node.name}</span>
         <button
-          onClick={(e) => { e.stopPropagation(); onDelete(node.id); }}
-          className="opacity-0 group-hover:opacity-100 text-slate-500 hover:text-red-400 transition-all"
-          aria-label="Delete file"
-        >
-          <Trash2 size={12} />
-        </button>
+          onClick={e => { e.stopPropagation(); onDelete(node.id); }}
+          style={{ background: "none", border: "none", cursor: "pointer", color: "#334155", padding: "0.125rem", display: "none", flexShrink: 0 }}
+          onMouseEnter={e => (e.currentTarget.style.color = "#f87171")}
+          onMouseLeave={e => (e.currentTarget.style.color = "#334155")}
+          ref={btn => { if (btn) btn.parentElement?.addEventListener("mouseenter", () => btn.style.display = "flex"); btn?.parentElement?.addEventListener("mouseleave", () => btn && (btn.style.display = "none")); }}
+          aria-label="Delete"
+        ><Trash2 size={11} /></button>
       </div>
     );
   }
 
   if (node.name === "root") {
-    return (
-      <>
-        {node.children.map((child, i) => (
-          <TreeNodeView key={i} node={child} depth={depth} onSelect={onSelect} onDelete={onDelete} selectedId={selectedId} />
-        ))}
-      </>
-    );
+    return <>{node.children.map((c, i) => <TreeNodeView key={i} node={c} depth={depth} onSelect={onSelect} onDelete={onDelete} selectedId={selectedId} />)}</>;
   }
 
   return (
     <div>
       <button
-        className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-slate-400 hover:text-white hover:bg-white/5 rounded-lg mx-1 transition-colors"
-        style={{ paddingLeft: `${depth * 12 + 12}px` }}
-        onClick={() => setOpen((o) => !o)}
+        className="tree-item"
+        style={{ paddingLeft: `${depth * 14 + 10}px`, width: "100%", border: "none", background: "none", textAlign: "left" }}
+        onClick={() => setOpen(o => !o)}
       >
-        <ChevronRight size={13} className={cn("shrink-0 transition-transform", open && "rotate-90")} />
-        {open ? <FolderOpen size={13} className="text-indigo-400 shrink-0" /> : <Folder size={13} className="text-indigo-400 shrink-0" />}
-        <span className="truncate">{node.name}</span>
+        <ChevronRight size={12} style={{ flexShrink: 0, transition: "transform 0.15s", transform: open ? "rotate(90deg)" : "none" }} />
+        {open
+          ? <FolderOpen size={13} style={{ flexShrink: 0, color: "#818cf8" }} />
+          : <Folder size={13} style={{ flexShrink: 0, color: "#818cf8" }} />}
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{node.name}</span>
       </button>
-      {open && node.children.map((child, i) => (
-        <TreeNodeView key={i} node={child} depth={depth + 1} onSelect={onSelect} onDelete={onDelete} selectedId={selectedId} />
-      ))}
+      {open && node.children.map((c, i) => <TreeNodeView key={i} node={c} depth={depth + 1} onSelect={onSelect} onDelete={onDelete} selectedId={selectedId} />)}
     </div>
-  );
-}
-
-function CodeViewer({ content, filename }: { content: string; filename: string }) {
-  // Simple line-numbered viewer with basic syntax-aware class
-  const lines = content.split("\n");
-  return (
-    <pre
-      className="text-xs font-mono p-4 overflow-auto h-full leading-relaxed"
-      aria-label={`File content: ${filename}`}
-    >
-      {lines.map((line, i) => (
-        <div key={i} className="flex">
-          <span className="text-slate-600 select-none w-8 shrink-0 text-right pr-4">{i + 1}</span>
-          <span className="text-slate-300 whitespace-pre">{line}</span>
-        </div>
-      ))}
-    </pre>
   );
 }

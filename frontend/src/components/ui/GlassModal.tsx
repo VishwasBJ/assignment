@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 
 interface GlassModalProps {
@@ -13,7 +12,6 @@ interface GlassModalProps {
 }
 
 export function GlassModal({ open, onClose, title, children, size = "md" }: GlassModalProps) {
-  // Close on Escape
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
     document.addEventListener("keydown", handler);
@@ -22,43 +20,26 @@ export function GlassModal({ open, onClose, title, children, size = "md" }: Glas
 
   if (!open) return null;
 
-  const widths = { sm: "max-w-md", md: "max-w-lg", lg: "max-w-2xl", xl: "max-w-4xl" };
+  const panelClass = `modal-panel modal-${size}`;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={title ? "modal-title" : undefined}
-    >
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      {/* Panel */}
-      <div
-        className={cn(
-          "relative w-full glass rounded-2xl shadow-2xl animate-fade-in",
-          widths[size]
-        )}
-      >
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div className="modal-backdrop" style={{ position: "absolute", inset: 0 }} onClick={onClose} aria-hidden="true" />
+      <div className={panelClass} style={{ position: "relative", zIndex: 1 }}>
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-            <h2 id="modal-title" className="text-lg font-semibold text-white">
-              {title}
-            </h2>
+          <div className="modal-header">
+            <h2 style={{ fontSize: "1.05rem", fontWeight: 600, color: "#f1f5f9", margin: 0 }}>{title}</h2>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white transition-colors rounded-lg p-1 hover:bg-white/10"
-              aria-label="Close modal"
+              className="btn btn-ghost btn-icon"
+              aria-label="Close"
+              style={{ padding: "0.3rem" }}
             >
-              <X size={18} />
+              <X size={16} />
             </button>
           </div>
         )}
-        <div className="p-6">{children}</div>
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );

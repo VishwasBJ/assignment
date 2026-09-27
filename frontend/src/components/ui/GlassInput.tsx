@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import { forwardRef, type InputHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 interface GlassInputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -8,36 +7,30 @@ interface GlassInputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const GlassInput = forwardRef<HTMLInputElement, GlassInputProps>(
-  ({ className, label, error, icon, id, ...props }, ref) => {
+  ({ className = "", label, error, icon, id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
     return (
-      <div className="flex flex-col gap-1.5">
-        {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-slate-300">
-            {label}
-          </label>
-        )}
-        <div className="relative">
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+        {label && <label htmlFor={inputId} className="label">{label}</label>}
+        <div style={{ position: "relative" }}>
           {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+            <span style={{
+              position: "absolute", left: "0.75rem", top: "50%",
+              transform: "translateY(-50%)", color: "#475569", pointerEvents: "none",
+              display: "flex", alignItems: "center"
+            }}>
               {icon}
-            </div>
+            </span>
           )}
           <input
             ref={ref}
             id={inputId}
-            className={cn(
-              "w-full glass rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500",
-              "focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500/60",
-              "transition-all duration-200",
-              icon && "pl-10",
-              error && "ring-2 ring-red-500/60",
-              className
-            )}
+            className={["input", error ? "error" : "", className].filter(Boolean).join(" ")}
+            style={icon ? { paddingLeft: "2.25rem" } : undefined}
             {...props}
           />
         </div>
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        {error && <span style={{ fontSize: "0.75rem", color: "#f87171" }}>{error}</span>}
       </div>
     );
   }
@@ -50,28 +43,18 @@ interface GlassTextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement>
 }
 
 export const GlassTextarea = forwardRef<HTMLTextAreaElement, GlassTextareaProps>(
-  ({ className, label, error, id, ...props }, ref) => {
+  ({ className = "", label, error, id, ...props }, ref) => {
     const inputId = id || label?.toLowerCase().replace(/\s+/g, "-");
     return (
-      <div className="flex flex-col gap-1.5">
-        {label && (
-          <label htmlFor={inputId} className="text-sm font-medium text-slate-300">
-            {label}
-          </label>
-        )}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.375rem" }}>
+        {label && <label htmlFor={inputId} className="label">{label}</label>}
         <textarea
           ref={ref}
           id={inputId}
-          className={cn(
-            "w-full glass rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-500",
-            "focus:outline-none focus:ring-2 focus:ring-indigo-500/60 focus:border-indigo-500/60",
-            "transition-all duration-200 resize-none",
-            error && "ring-2 ring-red-500/60",
-            className
-          )}
+          className={["input", error ? "error" : "", className].filter(Boolean).join(" ")}
           {...props}
         />
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        {error && <span style={{ fontSize: "0.75rem", color: "#f87171" }}>{error}</span>}
       </div>
     );
   }
