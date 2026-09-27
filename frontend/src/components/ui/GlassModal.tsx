@@ -20,48 +20,15 @@ export function GlassModal({ open, onClose, title, children, size = "md" }: Glas
 
   if (!open) return null;
 
-  const widths: Record<string, string> = {
-    sm: "28rem", md: "34rem", lg: "48rem", xl: "64rem",
-  };
+  const panelClass = `modal-panel modal-${size}`;
 
   return (
-    /* Outer overlay — clicking the dark area closes the modal */
-    <div
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-      style={{
-        position: "fixed", inset: 0, zIndex: 50,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        padding: "1rem",
-        background: "rgba(0,0,0,0.65)",
-        backdropFilter: "blur(4px)",
-        WebkitBackdropFilter: "blur(4px)",
-      }}
-    >
-      {/* Panel — stop propagation so clicks inside don't close the modal */}
-      <div
-        onClick={e => e.stopPropagation()}
-        style={{
-          position: "relative", zIndex: 1,
-          width: "100%", maxWidth: widths[size],
-          maxHeight: "90vh", overflowY: "auto",
-          background: "rgba(13,13,40,0.98)",
-          border: "1px solid rgba(255,255,255,0.1)",
-          borderRadius: "1.25rem",
-          boxShadow: "0 24px 80px rgba(0,0,0,0.5)",
-          animation: "fadeIn 0.2s ease-out both",
-        }}
-      >
+    <div className="modal-backdrop" role="dialog" aria-modal="true">
+      <div className="modal-backdrop" style={{ position: "absolute", inset: 0 }} onClick={onClose} aria-hidden="true" />
+      <div className={panelClass} style={{ position: "relative", zIndex: 1 }}>
         {title && (
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "1.25rem 1.5rem",
-            borderBottom: "1px solid rgba(255,255,255,0.08)",
-          }}>
-            <h2 style={{ fontSize: "1.05rem", fontWeight: 600, color: "#f1f5f9", margin: 0 }}>
-              {title}
-            </h2>
+          <div className="modal-header">
+            <h2 style={{ fontSize: "1.05rem", fontWeight: 600, color: "#f1f5f9", margin: 0 }}>{title}</h2>
             <button
               onClick={onClose}
               className="btn btn-ghost btn-icon"
@@ -72,7 +39,7 @@ export function GlassModal({ open, onClose, title, children, size = "md" }: Glas
             </button>
           </div>
         )}
-        <div style={{ padding: "1.5rem" }}>{children}</div>
+        <div className="modal-body">{children}</div>
       </div>
     </div>
   );
