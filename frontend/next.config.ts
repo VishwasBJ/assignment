@@ -1,8 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Required for Docker multi-stage build (copies only the minimum runtime)
-  output: "standalone",
+  // standalone output for Docker; disabled on Vercel (Vercel has its own output handling)
+  ...(process.env.VERCEL ? {} : { output: "standalone" }),
 
   // Allow cross-origin requests from the backend in development
   async headers() {
