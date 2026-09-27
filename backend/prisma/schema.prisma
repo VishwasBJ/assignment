@@ -1,0 +1,160 @@
+// This is your Prisma schema file.
+// Learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  projects     Project[]
+  aiProviders  AIProvider[]
+  chatSessions ChatSession[]
+
+  @@map("users")
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  files        File[]
+  reviews      Review[]
+  chatSessions ChatSession[]
+
+  @@map("projects")
+}
+
+model File {
+  id          String   @id @default(uuid())
+  name        String
+  path        String   // relative path within project (e.g. "src/app.ts")
+  content     String   @db.Text
+  mimeType    String?
+  size        Int
+  createdAt   DateTime @default(now())
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("files")
+}
+
+model Review {
+  id           String       @id @default(uuid())
+  title        String
+  templateType ReviewTemplate
+  status       ReviewStatus @default(PENDING)
+  summary      String?      @db.Text
+  issues       Json?        // ReviewIssue[]
+  recommendations Json?     // string[]
+  severity     Severity?
+  rawResponse  String?      @db.Text
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  fileIds   String[]  // IDs of files that were reviewed
+
+  @@map("reviews")
+}
+
+model AIProvider {
+  id          String   @id @default(uuid())
+  name        String   // display name e.g. "My OpenAI", "LM Studio Local"
+  providerType ProviderType
+  baseUrl     String
+  apiKey      String?
+  modelName   String
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("ai_providers")
+}
+
+model ChatSession {
+  id        String   @id @default(uuid())
+  title     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  messages Message[]
+
+  @@map("chat_sessions")
+}
+
+model Message {
+  id        String      @id @default(uuid())
+  role      MessageRole
+  content   String      @db.Text
+  createdAt DateTime    @default(now())
+
+  sessionId String
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// ---- Enums ----
+
+enum ReviewTemplate {
+  SECURITY
+  PERFORMANCE
+  CODE_QUALITY
+}
+
+enum ReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ProviderType {
+  OPENAI
+  LM_STUDIO
+  OLLAMA
+  OPENROUTER
+  CUSTOM
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+}
