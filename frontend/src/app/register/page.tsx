@@ -12,31 +12,41 @@ import { GlassInput } from "@/components/ui/GlassInput";
 import { GlassButton } from "@/components/ui/GlassButton";
 import { AuthProvider } from "@/components/AuthProvider";
 
-const schema = z.object({
-  email: z.string().email("Invalid email"),
-  username: z.string().min(3, "At least 3 characters").max(30),
-  password: z.string().min(8, "At least 8 characters"),
-  confirm: z.string(),
-}).refine((d) => d.password === d.confirm, {
-  path: ["confirm"],
-  message: "Passwords don't match",
-});
+const schema = z
+  .object({
+    email: z.string().email("Invalid email"),
+    username: z.string().min(3, "At least 3 characters").max(30),
+    password: z.string().min(8, "At least 8 characters"),
+    confirm: z.string(),
+  })
+  .refine((d) => d.password === d.confirm, {
+    path: ["confirm"],
+    message: "Passwords don't match",
+  });
 type FormValues = z.infer<typeof schema>;
 
 function RegisterForm() {
   const router = useRouter();
   const { register: registerUser, isLoading } = useAuthStore();
 
-  const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
-    resolver: zodResolver(schema),
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<FormValues>({ resolver: zodResolver(schema) });
 
   const onSubmit = async (data: FormValues) => {
     try {
       await registerUser(data.email, data.username, data.password);
       router.push("/dashboard");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Registration failed");
+      const msg =
+        err?.response?.data?.message ||
+        (Array.isArray(err?.response?.data?.message)
+          ? err.response.data.message.join(", ")
+          : null) ||
+        "Registration failed";
+      toast.error(msg);
     }
   };
 
@@ -89,7 +99,10 @@ function RegisterForm() {
 
         <p className="text-center text-sm text-slate-400 mt-6">
           Already have an account?{" "}
-          <Link href="/login" className="text-indigo-400 hover:text-indigo-300 font-medium">
+          <Link
+            href="/login"
+            className="text-indigo-400 hover:text-indigo-300 font-medium"
+          >
             Sign in
           </Link>
         </p>

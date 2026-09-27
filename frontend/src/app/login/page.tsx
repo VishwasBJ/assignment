@@ -29,9 +29,16 @@ function LoginForm() {
   const onSubmit = async (data: FormValues) => {
     try {
       await login(data.email, data.password);
+      // login() sets user in the store synchronously via set(); navigate after
       router.push("/dashboard");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Login failed");
+      const msg =
+        err?.response?.data?.message ||
+        (Array.isArray(err?.response?.data?.message)
+          ? err.response.data.message.join(", ")
+          : null) ||
+        "Login failed — check your email and password";
+      toast.error(msg);
     }
   };
 
